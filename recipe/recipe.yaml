@@ -1,0 +1,96 @@
+schema_version: 1
+
+context:
+  version: 1.1.1
+  mpi_prefix: "mpi_${{ mpi }}"
+
+recipe:
+  name: spfft
+  version: ${{ version }}
+
+source:
+  - url: https://github.com/eth-cscs/spfft/archive/refs/tags/v${{ version }}.tar.gz
+    sha256: 675a048124a96b8c7f89d59d3ac0355833e28b38622e76c4d478ee91b25d766c
+
+build:
+  number: 3
+  string: mpi_${{ mpi }}_h${{ hash }}_${{ build_number }}
+  skip:
+    - win
+
+outputs:
+  - package:
+      name: spfft
+    build:
+      script: build-spfft.sh
+    requirements:
+      build:
+        - ${{ compiler("c") }}
+        - ${{ compiler("cxx") }}
+        - ${{ compiler("fortran") }}
+        - ${{ mpi }}
+        - cmake >=3.18
+        - ninja >=1.13
+        - pkg-config
+      host:
+        - ${{ mpi }}
+        - _openmp_mutex
+        - "fftw * ${{ mpi_prefix }}_*"
+      run:
+        - ${{ mpi }}
+        - _openmp_mutex
+        - "fftw * ${{ mpi_prefix }}_*"
+    tests:
+      - package_contents:
+          lib:
+            - libspfft
+    about:
+      summary: Sparse 3D FFT shared library (SpFFT)
+  - package:
+      name: spfft-static
+    build:
+      script: build-spfft.sh
+    requirements:
+      build:
+        - ${{ compiler("c") }}
+        - ${{ compiler("cxx") }}
+        - ${{ compiler("fortran") }}
+        - ${{ mpi }}
+        - cmake >=3.18
+        - ninja >=1.13
+        - pkg-config
+      host:
+        - ${{ mpi }}
+        - _openmp_mutex
+        - "fftw * ${{ mpi_prefix }}_*"
+      run:
+        - ${{ mpi }}
+        - _openmp_mutex
+        - "fftw * ${{ mpi_prefix }}_*"
+    tests:
+      - package_contents:
+          lib:
+            - libspfft.a
+    about:
+      summary: Sparse 3D FFT static library (SpFFT)
+
+about:
+  homepage: https://github.com/eth-cscs/SpFFT.git
+  license: BSD-3-Clause
+  license_file: LICENSE
+  license_family: BSD
+  summary: SpFFT is A 3D FFT library for sparse frequency domain data written in C++ with support for MPI, OpenMP, CUDA and ROCm.
+  description: |
+    Inspired by the need of some computational material science applications
+    with spherical cutoff data in frequency domain, SpFFT provides Fast Fourier
+    Transformations of sparse frequency domain data. For distributed
+    computations with MPI, slab decomposition in space domain and pencil
+    decomposition in frequency domain (sparse data within a pencil / column must
+    be on one rank) is used.
+  repository: https://github.com/eth-cscs/SpFFT
+  documentation: https://spfft.readthedocs.io/en/latest/?badge=latest
+
+extra:
+  recipe-maintainers:
+    - AdhocMan
+    - mkrack
